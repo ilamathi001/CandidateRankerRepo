@@ -24,7 +24,6 @@ public class RankingController {
 
     @GetMapping("/")
     public String dashboard() {
-
         return "dashboard";
     }
 
@@ -33,11 +32,7 @@ public class RankingController {
 
             @RequestParam String title,
 
-            @RequestParam String skills,
-
-            @RequestParam int minExperience,
-
-            @RequestParam int maxExperience,
+            @RequestParam String experienceLevel,
 
             Model model) throws Exception {
 
@@ -52,15 +47,34 @@ public class RankingController {
 
         jd.setTitle(title);
 
-        jd.setMinExperience(
-                minExperience);
+        if (experienceLevel.equals("fresher")) {
 
-        jd.setMaxExperience(
-                maxExperience);
+            jd.setMinExperience(0);
+            jd.setMaxExperience(2);
+
+        } else if (experienceLevel.equals("1-3")) {
+
+            jd.setMinExperience(1);
+            jd.setMaxExperience(3);
+
+        } else if (experienceLevel.equals("3-5")) {
+
+            jd.setMinExperience(3);
+            jd.setMaxExperience(5);
+
+        } else if (experienceLevel.equals("5-10")) {
+
+            jd.setMinExperience(5);
+            jd.setMaxExperience(10);
+
+        } else {
+
+            jd.setMinExperience(10);
+            jd.setMaxExperience(30);
+        }
 
         jd.setSkills(
-                Arrays.asList(
-                        skills.split(",")));
+                getSkillsForRole(title));
 
         DynamicCandidateScorer scorer =
                 new DynamicCandidateScorer();
@@ -99,14 +113,11 @@ public class RankingController {
 
             cs.setCandidate(candidate);
 
-            cs.setResumeScore(
-                    resumeScore);
+            cs.setResumeScore(resumeScore);
 
-            cs.setBehaviorScore(
-                    behaviorScore);
+            cs.setBehaviorScore(behaviorScore);
 
-            cs.setFinalScore(
-                    finalScore);
+            cs.setFinalScore(finalScore);
 
             cs.setReasonForShortlisting(
                     reasonGenerator.generateReason(
@@ -132,16 +143,8 @@ public class RankingController {
                 title);
 
         model.addAttribute(
-                "skills",
-                skills);
-
-        model.addAttribute(
-                "minExperience",
-                minExperience);
-
-        model.addAttribute(
-                "maxExperience",
-                maxExperience);
+                "experienceLevel",
+                experienceLevel);
 
         model.addAttribute(
                 "candidates",
@@ -153,5 +156,59 @@ public class RankingController {
 
         return "results";
     }
-}
 
+    private List<String> getSkillsForRole(
+            String role) {
+
+        role = role.toLowerCase();
+
+        if (role.contains("ai")) {
+
+            return Arrays.asList(
+                    "Python",
+                    "LLM",
+                    "RAG",
+                    "Vector",
+                    "Machine Learning");
+        }
+
+        if (role.contains("machine learning")) {
+
+            return Arrays.asList(
+                    "Python",
+                    "TensorFlow",
+                    "PyTorch",
+                    "Machine Learning",
+                    "Deep Learning");
+        }
+
+        if (role.contains("data")) {
+
+            return Arrays.asList(
+                    "Python",
+                    "Statistics",
+                    "SQL",
+                    "Machine Learning");
+        }
+
+        if (role.contains("backend")) {
+
+            return Arrays.asList(
+                    "Java",
+                    "Spring Boot",
+                    "Microservices",
+                    "SQL");
+        }
+
+        if (role.contains("frontend")) {
+
+            return Arrays.asList(
+                    "React",
+                    "JavaScript",
+                    "HTML",
+                    "CSS");
+        }
+
+        return Arrays.asList();
+    }
+}

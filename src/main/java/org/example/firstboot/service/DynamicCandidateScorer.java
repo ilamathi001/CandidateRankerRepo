@@ -1,4 +1,3 @@
-
 package org.example.firstboot.service;
 
 import java.util.Arrays;
@@ -30,29 +29,64 @@ public class DynamicCandidateScorer {
                 candidate.getProfile()
                         .getYears_of_experience();
 
-        if (experience >= jd.getMinExperience()
-                && experience <= jd.getMaxExperience()) {
+        if (jd.getMinExperience() == 0) {
 
-            score += 40;
+            // Fresher Hiring
 
-        } else if (experience >= jd.getMinExperience() - 2) {
+            if (experience <= 2) {
 
-            score += 20;
+                score += 40;
+
+            } else {
+
+                score += 20;
+            }
+
+        } else {
+
+            if (experience >= jd.getMinExperience()
+                    && experience <= jd.getMaxExperience()) {
+
+                score += 40;
+
+            } else if (experience >= jd.getMinExperience() - 2) {
+
+                score += 20;
+            }
         }
 
-        // Title Score
+        // Role Relevance Score
 
         String title =
                 candidate.getProfile()
                         .getCurrent_title();
 
         if (title != null
-                && jd.getTitle() != null
-                && title.toLowerCase()
-                .contains(
-                        jd.getTitle().toLowerCase())) {
+                && jd.getTitle() != null) {
 
-            score += 20;
+            String candidateTitle =
+                    title.toLowerCase();
+
+            String requiredTitle =
+                    jd.getTitle().toLowerCase();
+
+            if (candidateTitle.contains(requiredTitle)) {
+
+                score += 20;
+
+            } else if (
+                    requiredTitle.contains("ai")
+                    && (
+                    candidateTitle.contains("machine learning")
+                    || candidateTitle.contains("ml")
+                    || candidateTitle.contains("data scientist")
+                    || candidateTitle.contains("nlp")
+                    || candidateTitle.contains("deep learning")
+                    || candidateTitle.contains("artificial intelligence")
+            )) {
+
+                score += 15;
+            }
         }
 
         // Semantic Skill Matching
@@ -78,18 +112,19 @@ public class DynamicCandidateScorer {
                     String required =
                             requiredSkill.toLowerCase();
 
+                    boolean matched = false;
+
                     // Direct Match
 
                     if (candidateSkill.contains(required)) {
 
-                        matchedSkills++;
-                        break;
+                        matched = true;
                     }
 
                     // Semantic Match
 
-                    if (semanticSkills
-                            .containsKey(required)) {
+                    if (!matched
+                            && semanticSkills.containsKey(required)) {
 
                         for (String synonym :
                                 semanticSkills.get(required)) {
@@ -97,15 +132,21 @@ public class DynamicCandidateScorer {
                             if (candidateSkill.contains(
                                     synonym.toLowerCase())) {
 
-                                matchedSkills++;
+                                matched = true;
                                 break;
                             }
                         }
                     }
+
+                    if (matched) {
+
+                        matchedSkills++;
+                        break;
+                    }
                 }
             }
 
-            score += matchedSkills * 8;
+            score += Math.min(matchedSkills * 8, 40);
         }
 
         return Math.min(score, 100);

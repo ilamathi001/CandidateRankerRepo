@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <html xmlns:th="http://www.thymeleaf.org">
 
 <head>
@@ -26,6 +25,12 @@ body{
     padding:20px;
     border-radius:10px;
     margin-bottom:20px;
+    box-shadow:0 2px 10px rgba(0,0,0,0.1);
+}
+
+.header h1{
+    margin:0;
+    color:#007bff;
 }
 
 .stats{
@@ -45,12 +50,27 @@ body{
 
 .card h2{
     color:#007bff;
+    margin:0;
+}
+
+.top-card{
+    background:white;
+    padding:20px;
+    border-radius:10px;
+    margin-bottom:20px;
+    box-shadow:0 2px 10px rgba(0,0,0,0.1);
+}
+
+.top-card h2{
+    color:#28a745;
+    margin-top:0;
 }
 
 table{
     width:100%;
     border-collapse:collapse;
     background:white;
+    box-shadow:0 2px 10px rgba(0,0,0,0.1);
 }
 
 th{
@@ -84,87 +104,119 @@ tr:nth-child(even){
 
 <div class="container">
 
-<div class="header">
+    <div class="header">
 
-<h1>Top Ranked Candidates</h1>
+        <h1>Top Ranked Candidates</h1>
 
-<p>
-AI Generated Candidate Ranking Results
-</p>
+        <p>
+            AI Generated Candidate Ranking Results
+        </p>
 
-</div>
+        <p>
+            <b>Role:</b>
+            <span th:text="${jobTitle}"></span>
+        </p>
 
-<div class="stats">
+        <p>
+            <b>Experience Level:</b>
+            <span th:text="${experienceLevel}"></span>
+        </p>
 
-<div class="card">
-<h2>100,000</h2>
-<p>Candidates Processed</p>
-</div>
+    </div>
 
-<div class="card">
-<h2>100</h2>
-<p>Top Candidates</p>
-</div>
+    <div class="stats">
 
-<div class="card">
-<h2>AI Ranking</h2>
-<p>Explainable Results</p>
-</div>
+        <div class="card">
+            <h2>100,000</h2>
+            <p>Candidates Processed</p>
+        </div>
 
-</div>
+        <div class="card">
+            <h2>100</h2>
+            <p>Top Candidates</p>
+        </div>
 
-<table>
+        <div class="card">
+            <h2>AI Ranking</h2>
+            <p>Explainable Results</p>
+        </div>
 
-<thead>
+    </div>
 
-<tr>
+    <div class="top-card">
 
-<th>Rank</th>
-<th>Candidate ID</th>
-<th>Current Title</th>
-<th>Resume Score</th>
-<th>Behavior Score</th>
-<th>Final Score</th>
-<th>Reason</th>
+        <h2>Top Recommended Candidate</h2>
 
-</tr>
+        <p>
+            <b>Candidate ID:</b>
+            <span th:text="${candidates[0].candidate.candidate_id}"></span>
+        </p>
 
-</thead>
+        <p>
+            <b>Experience:</b>
+            <span th:text="${candidates[0].candidate.profile.years_of_experience}"></span>
+            Years
+        </p>
 
-<tbody>
+        <p>
+            <b>Final Score:</b>
+            <span th:text="${#numbers.formatDecimal(candidates[0].finalScore,1,2)}"></span>
+        </p>
 
-<tr th:each="candidate, stat : ${candidates}">
+    </div>
 
-<td th:text="${stat.count}"></td>
+    <table>
 
-<td th:text="${candidate.candidate.candidate_id}">
-</td>
+        <thead>
 
-<td th:text="${candidate.candidate.profile.current_title}">
-</td>
+        <tr>
 
-<td th:text="${#numbers.formatDecimal(candidate.resumeScore,1,2)}">
-</td>
+            <th>Rank</th>
+            <th>Candidate ID</th>
+            <th>Years of Experience</th>
+            <th>Resume Score</th>
+            <th>Behavior Score</th>
+            <th>Final Score</th>
+            <th>Reason</th>
 
-<td th:text="${#numbers.formatDecimal(candidate.behaviorScore,1,2)}">
-</td>
+        </tr>
 
-<td>
+        </thead>
 
-<span class="badge"
-      th:text="${#numbers.formatDecimal(candidate.finalScore,1,2)} + '%'">
-</span>
+        <tbody>
 
-</td>
+        <tr th:each="candidate, stat : ${candidates}">
 
-<td th:text="${candidate.reasonForShortlisting}">
-</td>
+            <td th:text="${stat.count}"></td>
 
-</tr>
+            <td th:text="${candidate.candidate.candidate_id}">
+            </td>
 
-</tbody>
+            <td th:text="${candidate.candidate.profile.years_of_experience}">
+            </td>
 
-</table>
+            <td th:text="${#numbers.formatDecimal(candidate.resumeScore,1,2)}">
+            </td>
+
+            <td th:text="${#numbers.formatDecimal(candidate.behaviorScore,1,2)}">
+            </td>
+
+            <td>
+
+                <span class="badge"
+                      th:text="${#numbers.formatDecimal(candidate.finalScore,1,2)} + '%'">
+                </span>
+
+            </td>
+
+            <td th:text="${candidate.reasonForShortlisting}">
+            </td>
+
+        </tr>
+
+        </tbody>
+
+    </table>
 
 </div>
 
