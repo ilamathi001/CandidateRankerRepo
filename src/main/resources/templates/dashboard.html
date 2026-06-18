@@ -1,131 +1,126 @@
 <!DOCTYPE html>
-<html lang="en">
+<html xmlns:th="http://www.thymeleaf.org">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1">
 
-    <title>SmartHire AI</title>
+<meta charset="UTF-8">
 
-    <style>
+<title>SmartHire AI</title>
 
-        body{
-            font-family: Arial, sans-serif;
-            margin:40px;
-            background:#f5f7fa;
-        }
+<style>
 
-        .container{
-            max-width:900px;
-            margin:auto;
-            background:white;
-            padding:30px;
-            border-radius:10px;
-            box-shadow:0 2px 10px rgba(0,0,0,0.1);
-        }
+body{
+    font-family:Arial,sans-serif;
+    margin:0;
+    background:#f4f7fc;
+}
 
-        h1{
-            margin-bottom:10px;
-        }
+.container{
+    max-width:1000px;
+    margin:50px auto;
+    background:white;
+    padding:40px;
+    border-radius:12px;
+    box-shadow:0 2px 15px rgba(0,0,0,0.1);
+}
 
-        .form-group{
-            margin-bottom:20px;
-        }
+h1{
+    color:#007bff;
+    margin-bottom:10px;
+}
 
-        label{
-            display:block;
-            margin-bottom:8px;
-            font-weight:bold;
-        }
+.subtitle{
+    color:#666;
+    margin-bottom:30px;
+}
 
-        input{
-            width:100%;
-            padding:10px;
-            border:1px solid #ccc;
-            border-radius:5px;
-        }
+label{
+    font-weight:bold;
+    display:block;
+    margin-top:15px;
+}
 
-        button{
-            padding:12px 20px;
-            border:none;
-            background:#007bff;
-            color:white;
-            border-radius:5px;
-            cursor:pointer;
-        }
+input{
+    width:100%;
+    padding:12px;
+    margin-top:8px;
+    border:1px solid #ddd;
+    border-radius:6px;
+}
 
-        button:hover{
-            background:#0056b3;
-        }
+button{
+    margin-top:25px;
+    background:#007bff;
+    color:white;
+    border:none;
+    padding:14px 30px;
+    border-radius:6px;
+    cursor:pointer;
+    font-size:16px;
+}
 
-    </style>
+button:hover{
+    background:#0056b3;
+}
+
+</style>
+
 </head>
 
 <body>
 
 <div class="container">
 
-    <h1>SmartHire AI</h1>
+<h1>SmartHire AI</h1>
 
-    <p>
-        AI Powered Candidate Ranking Platform
-    </p>
+<p class="subtitle">
+AI Powered Candidate Ranking Platform
+</p>
 
-    <form>
+<form action="/results" method="get">
 
-        <div class="form-group">
+<label>Job Title</label>
 
-            <label>
-                Job Title
-            </label>
+<input
+type="text"
+name="title"
+value="AI Engineer"
+required>
 
-            <input type="text"
-                   placeholder="AI Engineer">
+<label>Skills (comma separated)</label>
 
-        </div>
+<input
+type="text"
+name="skills"
+value="Python,LLM,RAG,Retrieval,Vector"
+required>
 
-        <div class="form-group">
+<label>Minimum Experience</label>
 
-            <label>
-                Skills
-            </label>
+<input
+type="number"
+name="minExperience"
+value="5"
+required>
 
-            <input type="text"
-                   placeholder="Python, LLM, RAG, Vector DB">
+<label>Maximum Experience</label>
 
-        </div>
+<input
+type="number"
+name="maxExperience"
+value="10"
+required>
 
-        <div class="form-group">
+<button type="submit">
 
-            <label>
-                Minimum Experience
-            </label>
+Rank Candidates
 
-            <input type="number"
-                   placeholder="5">
+</button>
 
-        </div>
-
-        <div class="form-group">
-
-            <label>
-                Maximum Experience
-            </label>
-
-            <input type="number"
-                   placeholder="10">
-
-        </div>
-
-        <button type="submit">
-
-            Rank Candidates
-
-        </button>
-
-    </form>
+</form>
 
 </div>
 
 </body>
+
 </html>

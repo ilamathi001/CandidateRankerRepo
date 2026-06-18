@@ -2,9 +2,11 @@
 package org.example.firstboot.controller;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 
+import org.example.firstboot.export.CsvExporter;
 import org.example.firstboot.jd.JobDescription;
 import org.example.firstboot.model.Candidate;
 import org.example.firstboot.model.CandidateScore;
@@ -15,6 +17,7 @@ import org.example.firstboot.service.ReasonGenerator;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 @Controller
 public class RankingController {
@@ -26,7 +29,17 @@ public class RankingController {
     }
 
     @GetMapping("/results")
-    public String results(Model model) throws Exception {
+    public String results(
+
+            @RequestParam String title,
+
+            @RequestParam String skills,
+
+            @RequestParam int minExperience,
+
+            @RequestParam int maxExperience,
+
+            Model model) throws Exception {
 
         CandidateLoaderService loader =
                 new CandidateLoaderService();
@@ -37,21 +50,17 @@ public class RankingController {
         JobDescription jd =
                 new JobDescription();
 
-        jd.setTitle("AI Engineer");
+        jd.setTitle(title);
 
-        jd.setMinExperience(5);
+        jd.setMinExperience(
+                minExperience);
 
-        jd.setMaxExperience(10);
+        jd.setMaxExperience(
+                maxExperience);
 
         jd.setSkills(
-                List.of(
-                        "Python",
-                        "LLM",
-                        "RAG",
-                        "Retrieval",
-                        "Vector"
-                )
-        );
+                Arrays.asList(
+                        skills.split(",")));
 
         DynamicCandidateScorer scorer =
                 new DynamicCandidateScorer();
@@ -78,7 +87,7 @@ public class RankingController {
 
             double finalScore =
                     (resumeScore * 0.80)
-                            + (behaviorScore * 0.20);
+                    + (behaviorScore * 0.20);
 
             finalScore =
                     Math.round(
@@ -90,11 +99,14 @@ public class RankingController {
 
             cs.setCandidate(candidate);
 
-            cs.setResumeScore(resumeScore);
+            cs.setResumeScore(
+                    resumeScore);
 
-            cs.setBehaviorScore(behaviorScore);
+            cs.setBehaviorScore(
+                    behaviorScore);
 
-            cs.setFinalScore(finalScore);
+            cs.setFinalScore(
+                    finalScore);
 
             cs.setReasonForShortlisting(
                     reasonGenerator.generateReason(
@@ -107,6 +119,29 @@ public class RankingController {
                 Comparator.comparingDouble(
                         CandidateScore::getFinalScore)
                         .reversed());
+
+        CsvExporter exporter =
+                new CsvExporter();
+
+        exporter.exportTopCandidates(
+                rankedCandidates,
+                100);
+
+        model.addAttribute(
+                "jobTitle",
+                title);
+
+        model.addAttribute(
+                "skills",
+                skills);
+
+        model.addAttribute(
+                "minExperience",
+                minExperience);
+
+        model.addAttribute(
+                "maxExperience",
+                maxExperience);
 
         model.addAttribute(
                 "candidates",

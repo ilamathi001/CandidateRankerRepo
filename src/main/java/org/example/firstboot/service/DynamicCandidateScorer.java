@@ -1,6 +1,11 @@
 
 package org.example.firstboot.service;
 
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.example.firstboot.jd.JobDescription;
 import org.example.firstboot.model.Candidate;
 import org.example.firstboot.model.Skill;
@@ -19,7 +24,7 @@ public class DynamicCandidateScorer {
             return 0;
         }
 
-        // Experience Score (40)
+        // Experience Score
 
         double experience =
                 candidate.getProfile()
@@ -35,57 +40,30 @@ public class DynamicCandidateScorer {
             score += 20;
         }
 
-        // Title Score (30)
+        // Title Score
 
         String title =
                 candidate.getProfile()
-                        .getCurrent_title()
-                        .toLowerCase();
+                        .getCurrent_title();
 
-        if (title.contains("ai engineer")) {
-            score += 30;
-        }
+        if (title != null
+                && jd.getTitle() != null
+                && title.toLowerCase()
+                .contains(
+                        jd.getTitle().toLowerCase())) {
 
-        else if (title.contains("machine learning")) {
-            score += 25;
-        }
-
-        else if (title.contains("ml engineer")) {
-            score += 25;
-        }
-
-        else if (title.contains("nlp engineer")) {
             score += 20;
         }
 
-        else if (title.contains("data scientist")) {
-            score += 15;
-        }
-
-        // Penalty Titles
-
-        if (title.contains("hr")) {
-            score -= 40;
-        }
-
-        if (title.contains("operations")) {
-            score -= 40;
-        }
-
-        if (title.contains("sales")) {
-            score -= 40;
-        }
-
-        if (title.contains("marketing")) {
-            score -= 40;
-        }
-
-        // Skills Score (30)
+        // Semantic Skill Matching
 
         if (candidate.getSkills() != null
                 && jd.getSkills() != null) {
 
             int matchedSkills = 0;
+
+            Map<String, List<String>> semanticSkills =
+                    getSemanticSkills();
 
             for (Skill skill :
                     candidate.getSkills()) {
@@ -97,23 +75,97 @@ public class DynamicCandidateScorer {
                 for (String requiredSkill :
                         jd.getSkills()) {
 
-                    if (candidateSkill.contains(
-                            requiredSkill.toLowerCase())) {
+                    String required =
+                            requiredSkill.toLowerCase();
+
+                    // Direct Match
+
+                    if (candidateSkill.contains(required)) {
 
                         matchedSkills++;
                         break;
                     }
+
+                    // Semantic Match
+
+                    if (semanticSkills
+                            .containsKey(required)) {
+
+                        for (String synonym :
+                                semanticSkills.get(required)) {
+
+                            if (candidateSkill.contains(
+                                    synonym.toLowerCase())) {
+
+                                matchedSkills++;
+                                break;
+                            }
+                        }
+                    }
                 }
             }
 
-            score += matchedSkills * 6;
-        }
-
-        if (score < 0) {
-            score = 0;
+            score += matchedSkills * 8;
         }
 
         return Math.min(score, 100);
     }
-}
 
+    private Map<String, List<String>>
+    getSemanticSkills() {
+
+        Map<String, List<String>> map =
+                new HashMap<>();
+
+        map.put(
+                "rag",
+                Arrays.asList(
+                        "retrieval",
+                        "vector",
+                        "vector search",
+                        "faiss",
+                        "pinecone",
+                        "llamaindex",
+                        "langchain",
+                        "embeddings"));
+
+        map.put(
+                "llm",
+                Arrays.asList(
+                        "gpt",
+                        "llm",
+                        "transformers",
+                        "hugging face",
+                        "qlora",
+                        "fine tuning"));
+
+        map.put(
+                "nlp",
+                Arrays.asList(
+                        "nlp",
+                        "bert",
+                        "text classification",
+                        "tokenization",
+                        "named entity recognition"));
+
+        map.put(
+                "machine learning",
+                Arrays.asList(
+                        "machine learning",
+                        "deep learning",
+                        "tensorflow",
+                        "pytorch",
+                        "xgboost"));
+
+        map.put(
+                "vector",
+                Arrays.asList(
+                        "faiss",
+                        "pinecone",
+                        "embeddings",
+                        "vector search",
+                        "vector database"));
+
+        return map;
+    }
+}

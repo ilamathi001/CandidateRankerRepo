@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+
+<meta charset="UTF-8">
+
+<title>Candidate Details</title>
+
+<style>
+
+body{
+    font-family:Arial,sans-serif;
+    background:#f4f7fc;
+    margin:0;
+}
+
+.container{
+    width:80%;
+    margin:40px auto;
+    background:white;
+    padding:30px;
+    border-radius:10px;
+    box-shadow:0 2px 10px rgba(0,0,0,0.1);
+}
+
+h1{
+    color:#007bff;
+}
+
+.section{
+    margin-top:25px;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>Candidate Profile</h1>
+
+<div class="section">
+
+<h3>Candidate ID</h3>
+
+<p th:text="${candidate.candidate_id}">
+</p>
+
+</div>
+
+<div class="section">
+
+<h3>Current Title</h3>
+
+<p th:text="${candidate.profile.current_title}">
+</p>
+
+</div>
+
+<div class="section">
+
+<h3>Experience</h3>
+
+<p th:text="${candidate.profile.years_of_experience}">
+</p>
+
+</div>
+
+<div class="section">
+
+<h3>Skills</h3>
+
+<ul>
+
+<li th:each="skill : ${candidate.skills}"
+    th:text="${skill.name}">
+</li>
+
+</ul>
+
+</div>
+
+<div class="section">
+
+<h3>Behavior Signals</h3>
+
+<p>
+Recruiter Response Rate :
+<span th:text="${candidate.redrob_signals.recruiter_response_rate}">
+</span>
+</p>
+
+<p>
+Interview Completion Rate :
+<span th:text="${candidate.redrob_signals.interview_completion_rate}">
+</span>
+</p>
+
+</div>
+
+</div>
+
+</body>
+
+</html>
