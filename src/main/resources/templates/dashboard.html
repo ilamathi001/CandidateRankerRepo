@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1">
+
+    <title>SmartHire AI</title>
+
+    <style>
+
+        body{
+            font-family: Arial, sans-serif;
+            margin:40px;
+            background:#f5f7fa;
+        }
+
+        .container{
+            max-width:900px;
+            margin:auto;
+            background:white;
+            padding:30px;
+            border-radius:10px;
+            box-shadow:0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        h1{
+            margin-bottom:10px;
+        }
+
+        .form-group{
+            margin-bottom:20px;
+        }
+
+        label{
+            display:block;
+            margin-bottom:8px;
+            font-weight:bold;
+        }
+
+        input{
+            width:100%;
+            padding:10px;
+            border:1px solid #ccc;
+            border-radius:5px;
+        }
+
+        button{
+            padding:12px 20px;
+            border:none;
+            background:#007bff;
+            color:white;
+            border-radius:5px;
+            cursor:pointer;
+        }
+
+        button:hover{
+            background:#0056b3;
+        }
+
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>SmartHire AI</h1>
+
+    <p>
+        AI Powered Candidate Ranking Platform
+    </p>
+
+    <form>
+
+        <div class="form-group">
+
+            <label>
+                Job Title
+            </label>
+
+            <input type="text"
+                   placeholder="AI Engineer">
+
+        </div>
+
+        <div class="form-group">
+
+            <label>
+                Skills
+            </label>
+
+            <input type="text"
+                   placeholder="Python, LLM, RAG, Vector DB">
+
+        </div>
+
+        <div class="form-group">
+
+            <label>
+                Minimum Experience
+            </label>
+
+            <input type="number"
+                   placeholder="5">
+
+        </div>
+
+        <div class="form-group">
+
+            <label>
+                Maximum Experience
+            </label>
+
+            <input type="number"
+                   placeholder="10">
+
+        </div>
+
+        <button type="submit">
+
+            Rank Candidates
+
+        </button>
+
+    </form>
+
+</div>
+
+</body>
+</html>
