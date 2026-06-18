@@ -24,6 +24,7 @@ public class RankingController {
 
     @GetMapping("/")
     public String dashboard() {
+
         return "dashboard";
     }
 
@@ -47,27 +48,33 @@ public class RankingController {
 
         jd.setTitle(title);
 
+        // Experience Mapping
+
         if (experienceLevel.equals("fresher")) {
 
             jd.setMinExperience(0);
             jd.setMaxExperience(2);
 
-        } else if (experienceLevel.equals("1-3")) {
+        }
+        else if (experienceLevel.equals("1-3")) {
 
             jd.setMinExperience(1);
             jd.setMaxExperience(3);
 
-        } else if (experienceLevel.equals("3-5")) {
+        }
+        else if (experienceLevel.equals("3-5")) {
 
             jd.setMinExperience(3);
             jd.setMaxExperience(5);
 
-        } else if (experienceLevel.equals("5-10")) {
+        }
+        else if (experienceLevel.equals("5-10")) {
 
             jd.setMinExperience(5);
             jd.setMaxExperience(10);
 
-        } else {
+        }
+        else {
 
             jd.setMinExperience(10);
             jd.setMaxExperience(30);
@@ -89,6 +96,24 @@ public class RankingController {
                 new ArrayList<>();
 
         for (Candidate candidate : candidates) {
+
+            if (candidate == null
+                    || candidate.getProfile() == null) {
+
+                continue;
+            }
+
+            // Experience Eligibility Filter
+
+            double experience =
+                    candidate.getProfile()
+                            .getYears_of_experience();
+
+            if (experience < jd.getMinExperience()
+                    || experience > jd.getMaxExperience()) {
+
+                continue;
+            }
 
             double resumeScore =
                     scorer.calculateResumeScore(
@@ -113,11 +138,14 @@ public class RankingController {
 
             cs.setCandidate(candidate);
 
-            cs.setResumeScore(resumeScore);
+            cs.setResumeScore(
+                    resumeScore);
 
-            cs.setBehaviorScore(behaviorScore);
+            cs.setBehaviorScore(
+                    behaviorScore);
 
-            cs.setFinalScore(finalScore);
+            cs.setFinalScore(
+                    finalScore);
 
             cs.setReasonForShortlisting(
                     reasonGenerator.generateReason(
@@ -131,12 +159,23 @@ public class RankingController {
                         CandidateScore::getFinalScore)
                         .reversed());
 
+        if (rankedCandidates.isEmpty()) {
+
+            model.addAttribute(
+                    "message",
+                    "No matching candidates found");
+
+            return "results";
+        }
+
         CsvExporter exporter =
                 new CsvExporter();
 
         exporter.exportTopCandidates(
                 rankedCandidates,
-                100);
+                Math.min(
+                        100,
+                        rankedCandidates.size()));
 
         model.addAttribute(
                 "jobTitle",
@@ -168,8 +207,8 @@ public class RankingController {
                     "Python",
                     "LLM",
                     "RAG",
-                    "Vector",
-                    "Machine Learning");
+                    "Machine Learning",
+                    "Deep Learning");
         }
 
         if (role.contains("machine learning")) {
@@ -212,3 +251,4 @@ public class RankingController {
         return Arrays.asList();
     }
 }
+

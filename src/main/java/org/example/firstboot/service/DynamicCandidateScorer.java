@@ -1,3 +1,4 @@
+
 package org.example.firstboot.service;
 
 import java.util.Arrays;
@@ -15,86 +16,92 @@ public class DynamicCandidateScorer {
             Candidate candidate,
             JobDescription jd) {
 
-        double score = 0;
-
         if (candidate == null
                 || candidate.getProfile() == null) {
 
             return 0;
         }
 
-        // Experience Score
+        double experienceScore = 0;
+        double titleScore = 0;
+        double skillScore = 0;
 
         double experience =
                 candidate.getProfile()
                         .getYears_of_experience();
 
-        if (jd.getMinExperience() == 0) {
-
-            // Fresher Hiring
-
-            if (experience <= 2) {
-
-                score += 40;
-
-            } else {
-
-                score += 20;
-            }
-
-        } else {
-
-            if (experience >= jd.getMinExperience()
-                    && experience <= jd.getMaxExperience()) {
-
-                score += 40;
-
-            } else if (experience >= jd.getMinExperience() - 2) {
-
-                score += 20;
-            }
-        }
-
-        // Role Relevance Score
-
-        String title =
+        String currentTitle =
                 candidate.getProfile()
                         .getCurrent_title();
 
-        if (title != null
+        // ==================================
+        // Experience Relevance Score
+        // ==================================
+
+        if (experience >= jd.getMinExperience()
+                && experience <= jd.getMaxExperience()) {
+
+            experienceScore = 40;
+
+        }
+        else {
+
+            experienceScore = 0;
+        }
+
+        // ==================================
+        // Role Relevance Score
+        // ==================================
+
+        if (currentTitle != null
                 && jd.getTitle() != null) {
 
-            String candidateTitle =
-                    title.toLowerCase();
+            String candidateRole =
+                    currentTitle.toLowerCase();
 
-            String requiredTitle =
+            String requiredRole =
                     jd.getTitle().toLowerCase();
 
-            if (candidateTitle.contains(requiredTitle)) {
+            if (candidateRole.contains(requiredRole)) {
 
-                score += 20;
+                titleScore = 20;
 
-            } else if (
-                    requiredTitle.contains("ai")
+            }
+
+            else if (
+                    requiredRole.contains("ai")
                     && (
-                    candidateTitle.contains("machine learning")
-                    || candidateTitle.contains("ml")
-                    || candidateTitle.contains("data scientist")
-                    || candidateTitle.contains("nlp")
-                    || candidateTitle.contains("deep learning")
-                    || candidateTitle.contains("artificial intelligence")
+                    candidateRole.contains("machine learning")
+                    || candidateRole.contains("ml")
+                    || candidateRole.contains("nlp")
+                    || candidateRole.contains("data scientist")
+                    || candidateRole.contains("deep learning")
+                    || candidateRole.contains("artificial intelligence")
             )) {
 
-                score += 15;
+                titleScore = 15;
+            }
+
+            else if (
+                    requiredRole.contains("backend")
+                    && (
+                    candidateRole.contains("java")
+                    || candidateRole.contains("spring")
+                    || candidateRole.contains("software engineer")
+            )) {
+
+                titleScore = 15;
             }
         }
 
+        // ==================================
         // Semantic Skill Matching
+        // ==================================
+
+        int matchedSkills = 0;
 
         if (candidate.getSkills() != null
                 && jd.getSkills() != null) {
-
-            int matchedSkills = 0;
 
             Map<String, List<String>> semanticSkills =
                     getSemanticSkills();
@@ -145,11 +152,44 @@ public class DynamicCandidateScorer {
                     }
                 }
             }
-
-            score += Math.min(matchedSkills * 8, 40);
         }
 
-        return Math.min(score, 100);
+        skillScore =
+                Math.min(
+                        matchedSkills * 8,
+                        40);
+
+        // ==================================
+        // Resume Score Calculation
+        // ==================================
+
+        double finalResumeScore;
+
+        if (jd.getMinExperience() == 0) {
+
+            // Fresher Hiring
+
+            finalResumeScore =
+                    (experienceScore * 0.20)
+                    + (titleScore * 0.10)
+                    + (skillScore * 0.70);
+
+        }
+        else {
+
+            // Experienced Hiring
+
+            finalResumeScore =
+                    (experienceScore * 0.40)
+                    + (titleScore * 0.20)
+                    + (skillScore * 0.40);
+        }
+
+        return Math.min(
+                Math.round(
+                        finalResumeScore * 100.0)
+                        / 100.0,
+                100);
     }
 
     private Map<String, List<String>>
@@ -174,7 +214,6 @@ public class DynamicCandidateScorer {
                 "llm",
                 Arrays.asList(
                         "gpt",
-                        "llm",
                         "transformers",
                         "hugging face",
                         "qlora",
@@ -183,7 +222,6 @@ public class DynamicCandidateScorer {
         map.put(
                 "nlp",
                 Arrays.asList(
-                        "nlp",
                         "bert",
                         "text classification",
                         "tokenization",
@@ -192,7 +230,6 @@ public class DynamicCandidateScorer {
         map.put(
                 "machine learning",
                 Arrays.asList(
-                        "machine learning",
                         "deep learning",
                         "tensorflow",
                         "pytorch",
@@ -210,3 +247,4 @@ public class DynamicCandidateScorer {
         return map;
     }
 }
+
