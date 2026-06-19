@@ -1,8 +1,7 @@
-
 package org.example.firstboot.controller;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
@@ -40,15 +39,26 @@ public class RankingController {
         CandidateLoaderService loader =
                 new CandidateLoaderService();
 
-        List<Candidate> candidates =
-                loader.loadCandidates();
+        List<Candidate> candidates;
+
+        try {
+
+            candidates =
+                    loader.loadCandidates();
+
+        } catch (Exception e) {
+
+            model.addAttribute(
+                    "message",
+                    "Unable to load candidate profiles.");
+
+            return "results";
+        }
 
         JobDescription jd =
                 new JobDescription();
 
         jd.setTitle(title);
-
-        // Experience Mapping
 
         if (experienceLevel.equals("fresher")) {
 
@@ -80,8 +90,10 @@ public class RankingController {
             jd.setMaxExperience(30);
         }
 
+        // ATS style skill mapping removed
+
         jd.setSkills(
-                getSkillsForRole(title));
+                Collections.emptyList());
 
         DynamicCandidateScorer scorer =
                 new DynamicCandidateScorer();
@@ -103,11 +115,11 @@ public class RankingController {
                 continue;
             }
 
-            // Experience Eligibility Filter
-
             double experience =
                     candidate.getProfile()
                             .getYears_of_experience();
+
+            // Experience Eligibility
 
             if (experience < jd.getMinExperience()
                     || experience > jd.getMaxExperience()) {
@@ -168,14 +180,23 @@ public class RankingController {
             return "results";
         }
 
-        CsvExporter exporter =
-                new CsvExporter();
+        try {
 
-        exporter.exportTopCandidates(
-                rankedCandidates,
-                Math.min(
-                        100,
-                        rankedCandidates.size()));
+            CsvExporter exporter =
+                    new CsvExporter();
+
+            exporter.exportTopCandidates(
+                    rankedCandidates,
+                    Math.min(
+                            100,
+                            rankedCandidates.size()));
+
+        } catch (Exception e) {
+
+            System.out.println(
+                    "CSV Export Failed : "
+                            + e.getMessage());
+        }
 
         model.addAttribute(
                 "jobTitle",
@@ -195,60 +216,4 @@ public class RankingController {
 
         return "results";
     }
-
-    private List<String> getSkillsForRole(
-            String role) {
-
-        role = role.toLowerCase();
-
-        if (role.contains("ai")) {
-
-            return Arrays.asList(
-                    "Python",
-                    "LLM",
-                    "RAG",
-                    "Machine Learning",
-                    "Deep Learning");
-        }
-
-        if (role.contains("machine learning")) {
-
-            return Arrays.asList(
-                    "Python",
-                    "TensorFlow",
-                    "PyTorch",
-                    "Machine Learning",
-                    "Deep Learning");
-        }
-
-        if (role.contains("data")) {
-
-            return Arrays.asList(
-                    "Python",
-                    "Statistics",
-                    "SQL",
-                    "Machine Learning");
-        }
-
-        if (role.contains("backend")) {
-
-            return Arrays.asList(
-                    "Java",
-                    "Spring Boot",
-                    "Microservices",
-                    "SQL");
-        }
-
-        if (role.contains("frontend")) {
-
-            return Arrays.asList(
-                    "React",
-                    "JavaScript",
-                    "HTML",
-                    "CSS");
-        }
-
-        return Arrays.asList();
-    }
 }
-
