@@ -34,7 +34,7 @@ public class RankingController {
 
             @RequestParam String experienceLevel,
 
-            Model model) throws Exception {
+            Model model) {
 
         CandidateLoaderService loader =
                 new CandidateLoaderService();
@@ -60,37 +60,35 @@ public class RankingController {
 
         jd.setTitle(title);
 
-        if (experienceLevel.equals("fresher")) {
+        // Experience Mapping
+
+        if ("fresher".equals(experienceLevel)) {
 
             jd.setMinExperience(0);
             jd.setMaxExperience(2);
 
-        }
-        else if (experienceLevel.equals("1-3")) {
+        } else if ("1-3".equals(experienceLevel)) {
 
             jd.setMinExperience(1);
             jd.setMaxExperience(3);
 
-        }
-        else if (experienceLevel.equals("3-5")) {
+        } else if ("3-5".equals(experienceLevel)) {
 
             jd.setMinExperience(3);
             jd.setMaxExperience(5);
 
-        }
-        else if (experienceLevel.equals("5-10")) {
+        } else if ("5-10".equals(experienceLevel)) {
 
             jd.setMinExperience(5);
             jd.setMaxExperience(10);
 
-        }
-        else {
+        } else {
 
             jd.setMinExperience(10);
             jd.setMaxExperience(30);
         }
 
-        // ATS style skill mapping removed
+        // ATS Skill Mapping Removed
 
         jd.setSkills(
                 Collections.emptyList());
@@ -119,7 +117,7 @@ public class RankingController {
                     candidate.getProfile()
                             .getYears_of_experience();
 
-            // Experience Eligibility
+            // Eligibility Criteria
 
             if (experience < jd.getMinExperience()
                     || experience > jd.getMaxExperience()) {
@@ -132,9 +130,23 @@ public class RankingController {
                             candidate,
                             jd);
 
+            resumeScore =
+                    Math.max(
+                            0,
+                            Math.min(
+                                    100,
+                                    resumeScore));
+
             double behaviorScore =
                     behaviorCalculator.calculate(
                             candidate);
+
+            behaviorScore =
+                    Math.max(
+                            0,
+                            Math.min(
+                                    100,
+                                    behaviorScore));
 
             double finalScore =
                     (resumeScore * 0.80)
@@ -175,7 +187,7 @@ public class RankingController {
 
             model.addAttribute(
                     "message",
-                    "No matching candidates found");
+                    "No eligible candidates found for the selected experience range.");
 
             return "results";
         }

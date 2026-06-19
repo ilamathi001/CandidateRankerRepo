@@ -16,57 +16,60 @@ public class DynamicCandidateScorer {
         }
 
         double experienceScore;
-        double roleScore;
+        double profileScore;
         double skillScore;
 
         double experience =
                 candidate.getProfile()
                         .getYears_of_experience();
 
-        String currentTitle =
-                candidate.getProfile()
-                        .getCurrent_title();
-
         // =================================
         // Experience Relevance
         // =================================
 
-        if (experience >= jd.getMinExperience()
-                && experience <= jd.getMaxExperience()) {
+        double midPoint =
+                (jd.getMinExperience()
+                + jd.getMaxExperience()) / 2.0;
 
-            experienceScore = 100;
+        double difference =
+                Math.abs(
+                        experience - midPoint);
 
-        } else {
-
-            experienceScore = 60;
-        }
+        experienceScore =
+                Math.max(
+                        50,
+                        100 - (difference * 10));
 
         // =================================
-        // Role Alignment
+        // Profile Completeness
         // =================================
 
-        if (currentTitle != null
-                && jd.getTitle() != null) {
+        profileScore = 20;
 
-            String candidateRole =
-                    currentTitle.toLowerCase();
+        if (candidate.getProfile()
+                .getCurrent_title() != null
+                && !candidate.getProfile()
+                .getCurrent_title().isBlank()) {
 
-            String requiredRole =
-                    jd.getTitle().toLowerCase();
-
-            if (candidateRole.contains(requiredRole)) {
-
-                roleScore = 100;
-
-            } else {
-
-                roleScore = 70;
-            }
-
-        } else {
-
-            roleScore = 50;
+            profileScore += 15;
         }
+
+        if (candidate.getSkills() != null
+                && !candidate.getSkills().isEmpty()) {
+
+            profileScore += 15;
+        }
+
+        if (candidate.getProfile()
+                .getYears_of_experience() > 0) {
+
+            profileScore += 10;
+        }
+
+        profileScore =
+                Math.min(
+                        profileScore,
+                        60);
 
         // =================================
         // Skill Diversity
@@ -82,7 +85,7 @@ public class DynamicCandidateScorer {
 
         skillScore =
                 Math.min(
-                        skillCount * 10,
+                        skillCount * 8,
                         100);
 
         // =================================
@@ -91,8 +94,8 @@ public class DynamicCandidateScorer {
 
         double resumeScore =
                 (experienceScore * 0.50)
-                + (skillScore * 0.30)
-                + (roleScore * 0.20);
+                + (profileScore * 0.20)
+                + (skillScore * 0.30);
 
         return Math.round(
                 resumeScore * 100.0)
