@@ -1,7 +1,13 @@
 package org.example.firstboot.service;
 
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.example.firstboot.jd.JobDescription;
 import org.example.firstboot.model.Candidate;
+import org.example.firstboot.model.Skill;
 
 public class DynamicCandidateScorer {
 
@@ -15,9 +21,9 @@ public class DynamicCandidateScorer {
             return 0;
         }
 
-        double experienceScore;
-        double profileScore;
-        double skillScore;
+        double experienceScore = 0;
+        double skillScore = 0;
+        double profileScore = 0;
 
         double experience =
                 candidate.getProfile()
@@ -27,78 +33,168 @@ public class DynamicCandidateScorer {
         // Experience Relevance
         // =================================
 
-        double midPoint =
-                (jd.getMinExperience()
-                + jd.getMaxExperience()) / 2.0;
+        if (experience >= jd.getMinExperience()
+                && experience <= jd.getMaxExperience()) {
 
-        double difference =
-                Math.abs(
-                        experience - midPoint);
+            experienceScore = 100;
 
-        experienceScore =
-                Math.max(
-                        50,
-                        100 - (difference * 10));
+        } else {
+
+            experienceScore = 0;
+        }
 
         // =================================
-        // Profile Completeness
+        // Profile Quality
         // =================================
 
-        profileScore = 20;
+        profileScore = 40;
 
         if (candidate.getProfile()
                 .getCurrent_title() != null
                 && !candidate.getProfile()
                 .getCurrent_title().isBlank()) {
 
-            profileScore += 15;
+            profileScore += 30;
         }
 
         if (candidate.getSkills() != null
                 && !candidate.getSkills().isEmpty()) {
 
-            profileScore += 15;
+            profileScore += 30;
         }
-
-        if (candidate.getProfile()
-                .getYears_of_experience() > 0) {
-
-            profileScore += 10;
-        }
-
-        profileScore =
-                Math.min(
-                        profileScore,
-                        60);
 
         // =================================
-        // Skill Diversity
+        // Semantic Skill Matching
         // =================================
 
-        int skillCount = 0;
+        int matchedSkills = 0;
 
-        if (candidate.getSkills() != null) {
+        if (candidate.getSkills() != null
+                && jd.getSkills() != null) {
 
-            skillCount =
-                    candidate.getSkills().size();
+            Map<String, List<String>> semanticSkills =
+                    getSemanticSkills();
+
+            for (Skill skill :
+                    candidate.getSkills()) {
+
+                String candidateSkill =
+                        skill.getName()
+                                .toLowerCase();
+
+                for (String requiredSkill :
+                        jd.getSkills()) {
+
+                    String required =
+                            requiredSkill.toLowerCase();
+
+                    boolean matched = false;
+
+                    // Direct Match
+
+                    if (candidateSkill.contains(required)) {
+
+                        matched = true;
+                    }
+
+                    // Semantic Match
+
+                    if (!matched
+                            && semanticSkills.containsKey(required)) {
+
+                        for (String synonym :
+                                semanticSkills.get(required)) {
+
+                            if (candidateSkill.contains(
+                                    synonym.toLowerCase())) {
+
+                                matched = true;
+                                break;
+                            }
+                        }
+                    }
+
+                    if (matched) {
+
+                        matchedSkills++;
+                        break;
+                    }
+                }
+            }
         }
+
+        // Max skill score = 60
 
         skillScore =
                 Math.min(
-                        skillCount * 8,
-                        100);
+                        matchedSkills * 12,
+                        60);
 
         // =================================
         // Resume Score
         // =================================
 
         double resumeScore =
-                (experienceScore * 0.50)
-                + (profileScore * 0.20)
-                + (skillScore * 0.30);
+                (experienceScore * 0.40)
+                + (skillScore * 0.40)
+                + (profileScore * 0.20);
 
         return Math.round(
                 resumeScore * 100.0)
                 / 100.0;
+    }
+
+    private Map<String, List<String>>
+    getSemanticSkills() {
+
+        Map<String, List<String>> map =
+                new HashMap<>();
+
+        map.put(
+                "rag",
+                Arrays.asList(
+                        "langchain",
+                        "llamaindex",
+                        "faiss",
+                        "pinecone",
+                        "embeddings",
+                        "vector search",
+                        "retrieval"));
+
+        map.put(
+                "llm",
+                Arrays.asList(
+                        "gpt",
+                        "transformers",
+                        "hugging face",
+                        "fine tuning",
+                        "prompt engineering"));
+
+        map.put(
+                "machine learning",
+                Arrays.asList(
+                        "tensorflow",
+                        "pytorch",
+                        "xgboost",
+                        "deep learning",
+                        "supervised learning"));
+
+        map.put(
+                "nlp",
+                Arrays.asList(
+                        "bert",
+                        "tokenization",
+                        "named entity recognition",
+                        "text classification"));
+
+        map.put(
+                "vector database",
+                Arrays.asList(
+                        "faiss",
+                        "pinecone",
+                        "chromadb",
+                        "weaviate"));
+
+        return map;
     }
 }

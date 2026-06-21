@@ -1,7 +1,7 @@
 package org.example.firstboot.controller;
 
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 
@@ -34,64 +34,51 @@ public class RankingController {
 
             @RequestParam String experienceLevel,
 
-            Model model) {
+            Model model) throws Exception {
 
         CandidateLoaderService loader =
                 new CandidateLoaderService();
 
-        List<Candidate> candidates;
-
-        try {
-
-            candidates =
-                    loader.loadCandidates();
-
-        } catch (Exception e) {
-
-            model.addAttribute(
-                    "message",
-                    "Unable to load candidate profiles.");
-
-            return "results";
-        }
+        List<Candidate> candidates =
+                loader.loadCandidates();
 
         JobDescription jd =
                 new JobDescription();
 
         jd.setTitle(title);
 
-        // Experience Mapping
-
-        if ("fresher".equals(experienceLevel)) {
+        if (experienceLevel.equals("fresher")) {
 
             jd.setMinExperience(0);
             jd.setMaxExperience(2);
 
-        } else if ("1-3".equals(experienceLevel)) {
+        }
+        else if (experienceLevel.equals("1-3")) {
 
             jd.setMinExperience(1);
             jd.setMaxExperience(3);
 
-        } else if ("3-5".equals(experienceLevel)) {
+        }
+        else if (experienceLevel.equals("3-5")) {
 
             jd.setMinExperience(3);
             jd.setMaxExperience(5);
 
-        } else if ("5-10".equals(experienceLevel)) {
+        }
+        else if (experienceLevel.equals("5-10")) {
 
             jd.setMinExperience(5);
             jd.setMaxExperience(10);
 
-        } else {
+        }
+        else {
 
             jd.setMinExperience(10);
             jd.setMaxExperience(30);
         }
 
-        // ATS Skill Mapping Removed
-
         jd.setSkills(
-                Collections.emptyList());
+                getSkillsForRole(title));
 
         DynamicCandidateScorer scorer =
                 new DynamicCandidateScorer();
@@ -117,8 +104,6 @@ public class RankingController {
                     candidate.getProfile()
                             .getYears_of_experience();
 
-            // Eligibility Criteria
-
             if (experience < jd.getMinExperience()
                     || experience > jd.getMaxExperience()) {
 
@@ -130,23 +115,9 @@ public class RankingController {
                             candidate,
                             jd);
 
-            resumeScore =
-                    Math.max(
-                            0,
-                            Math.min(
-                                    100,
-                                    resumeScore));
-
             double behaviorScore =
                     behaviorCalculator.calculate(
                             candidate);
-
-            behaviorScore =
-                    Math.max(
-                            0,
-                            Math.min(
-                                    100,
-                                    behaviorScore));
 
             double finalScore =
                     (resumeScore * 0.80)
@@ -161,15 +132,9 @@ public class RankingController {
                     new CandidateScore();
 
             cs.setCandidate(candidate);
-
-            cs.setResumeScore(
-                    resumeScore);
-
-            cs.setBehaviorScore(
-                    behaviorScore);
-
-            cs.setFinalScore(
-                    finalScore);
+            cs.setResumeScore(resumeScore);
+            cs.setBehaviorScore(behaviorScore);
+            cs.setFinalScore(finalScore);
 
             cs.setReasonForShortlisting(
                     reasonGenerator.generateReason(
@@ -183,32 +148,14 @@ public class RankingController {
                         CandidateScore::getFinalScore)
                         .reversed());
 
-        if (rankedCandidates.isEmpty()) {
+        CsvExporter exporter =
+                new CsvExporter();
 
-            model.addAttribute(
-                    "message",
-                    "No eligible candidates found for the selected experience range.");
-
-            return "results";
-        }
-
-        try {
-
-            CsvExporter exporter =
-                    new CsvExporter();
-
-            exporter.exportTopCandidates(
-                    rankedCandidates,
-                    Math.min(
-                            100,
-                            rankedCandidates.size()));
-
-        } catch (Exception e) {
-
-            System.out.println(
-                    "CSV Export Failed : "
-                            + e.getMessage());
-        }
+        exporter.exportTopCandidates(
+                rankedCandidates,
+                Math.min(
+                        100,
+                        rankedCandidates.size()));
 
         model.addAttribute(
                 "jobTitle",
@@ -227,5 +174,59 @@ public class RankingController {
                                 rankedCandidates.size())));
 
         return "results";
+    }
+
+    private List<String> getSkillsForRole(
+            String role) {
+
+        role = role.toLowerCase();
+
+        if (role.contains("ai")) {
+
+            return Arrays.asList(
+                    "Python",
+                    "LLM",
+                    "RAG",
+                    "Machine Learning",
+                    "Vector Database");
+        }
+
+        if (role.contains("machine learning")) {
+
+            return Arrays.asList(
+                    "Python",
+                    "TensorFlow",
+                    "PyTorch",
+                    "Machine Learning");
+        }
+
+        if (role.contains("data")) {
+
+            return Arrays.asList(
+                    "Python",
+                    "Statistics",
+                    "SQL",
+                    "Machine Learning");
+        }
+
+        if (role.contains("backend")) {
+
+            return Arrays.asList(
+                    "Java",
+                    "Spring Boot",
+                    "Microservices",
+                    "SQL");
+        }
+
+        if (role.contains("frontend")) {
+
+            return Arrays.asList(
+                    "React",
+                    "JavaScript",
+                    "HTML",
+                    "CSS");
+        }
+
+        return Arrays.asList();
     }
 }
