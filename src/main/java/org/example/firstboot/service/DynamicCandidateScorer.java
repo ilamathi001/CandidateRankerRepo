@@ -21,59 +21,84 @@ public class DynamicCandidateScorer {
             return 0;
         }
 
+        // ==========================
+        // Experience Score
+        // ==========================
+
         double experienceScore = 0;
-        double skillScore = 0;
-        double profileScore = 0;
 
         double experience =
                 candidate.getProfile()
                         .getYears_of_experience();
 
-        // =================================
-        // Experience Relevance
-        // =================================
-
         if (experience >= jd.getMinExperience()
                 && experience <= jd.getMaxExperience()) {
 
-            experienceScore = 100;
+            double midpoint =
+                    (jd.getMinExperience()
+                            + jd.getMaxExperience())
+                            / 2.0;
+
+            double gap =
+                    Math.abs(
+                            experience
+                                    - midpoint);
+
+            experienceScore =
+                    Math.max(
+                            60,
+                            100 - (gap * 10));
 
         } else {
 
             experienceScore = 0;
         }
 
-        // =================================
+        // ==========================
         // Profile Quality
-        // =================================
+        // ==========================
 
-        profileScore = 40;
+        double profileScore = 0;
 
         if (candidate.getProfile()
-                .getCurrent_title() != null
-                && !candidate.getProfile()
-                .getCurrent_title().isBlank()) {
+                .getCurrent_title() != null) {
 
-            profileScore += 30;
+            profileScore += 40;
         }
 
-        if (candidate.getSkills() != null
-                && !candidate.getSkills().isEmpty()) {
+        if (candidate.getSkills() != null) {
 
-            profileScore += 30;
+            profileScore += Math.min(
+                    candidate.getSkills().size() * 2,
+                    40);
         }
 
-        // =================================
-        // Semantic Skill Matching
-        // =================================
+        if (candidate.getCareer_history() != null) {
+
+            profileScore += Math.min(
+                    candidate.getCareer_history().size() * 4,
+                    20);
+        }
+
+        profileScore =
+                Math.min(
+                        profileScore,
+                        100);
+
+        // ==========================
+        // Semantic Matching
+        // ==========================
 
         int matchedSkills = 0;
 
+        double endorsementScore = 0;
+
+        Map<String, List<String>>
+                semanticMap =
+                getSemanticSkills();
+
         if (candidate.getSkills() != null
                 && jd.getSkills() != null) {
-
-            Map<String, List<String>> semanticSkills =
-                    getSemanticSkills();
 
             for (Skill skill :
                     candidate.getSkills()) {
@@ -82,31 +107,30 @@ public class DynamicCandidateScorer {
                         skill.getName()
                                 .toLowerCase();
 
-                for (String requiredSkill :
+                for (String required :
                         jd.getSkills()) {
 
-                    String required =
-                            requiredSkill.toLowerCase();
+                    String requiredSkill =
+                            required.toLowerCase();
 
                     boolean matched = false;
 
-                    // Direct Match
-
-                    if (candidateSkill.contains(required)) {
+                    if (candidateSkill.contains(
+                            requiredSkill)) {
 
                         matched = true;
                     }
 
-                    // Semantic Match
-
                     if (!matched
-                            && semanticSkills.containsKey(required)) {
+                            && semanticMap.containsKey(
+                            requiredSkill)) {
 
-                        for (String synonym :
-                                semanticSkills.get(required)) {
+                        for (String related :
+                                semanticMap.get(
+                                        requiredSkill)) {
 
                             if (candidateSkill.contains(
-                                    synonym.toLowerCase())) {
+                                    related.toLowerCase())) {
 
                                 matched = true;
                                 break;
@@ -117,27 +141,46 @@ public class DynamicCandidateScorer {
                     if (matched) {
 
                         matchedSkills++;
+
+                        endorsementScore +=
+                                Math.min(
+                                        skill.getEndorsements(),
+                                        20);
+
+                        endorsementScore +=
+                                Math.min(
+                                        skill.getDuration_months()
+                                                / 12.0,
+                                        10);
+
                         break;
                     }
                 }
             }
         }
 
-        // Max skill score = 60
-
-        skillScore =
+        double skillMatchScore =
                 Math.min(
-                        matchedSkills * 12,
-                        60);
+                        matchedSkills * 15,
+                        75);
 
-        // =================================
+        double skillStrengthScore =
+                Math.min(
+                        endorsementScore,
+                        25);
+
+        double skillScore =
+                skillMatchScore
+                        + skillStrengthScore;
+
+        // ==========================
         // Resume Score
-        // =================================
+        // ==========================
 
         double resumeScore =
-                (experienceScore * 0.40)
-                + (skillScore * 0.40)
-                + (profileScore * 0.20);
+                (experienceScore * 0.35)
+                        + (skillScore * 0.45)
+                        + (profileScore * 0.20);
 
         return Math.round(
                 resumeScore * 100.0)
@@ -157,18 +200,14 @@ public class DynamicCandidateScorer {
                         "llamaindex",
                         "faiss",
                         "pinecone",
-                        "embeddings",
-                        "vector search",
-                        "retrieval"));
+                        "embeddings"));
 
         map.put(
                 "llm",
                 Arrays.asList(
                         "gpt",
                         "transformers",
-                        "hugging face",
-                        "fine tuning",
-                        "prompt engineering"));
+                        "huggingface"));
 
         map.put(
                 "machine learning",
@@ -176,16 +215,7 @@ public class DynamicCandidateScorer {
                         "tensorflow",
                         "pytorch",
                         "xgboost",
-                        "deep learning",
-                        "supervised learning"));
-
-        map.put(
-                "nlp",
-                Arrays.asList(
-                        "bert",
-                        "tokenization",
-                        "named entity recognition",
-                        "text classification"));
+                        "deep learning"));
 
         map.put(
                 "vector database",
